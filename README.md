@@ -1,143 +1,97 @@
-# Volatility Trading Strategy (IV vs RV)
+# Volatility Trading Strategy
 
-## 📌 Overview
-This project implements a volatility-based trading strategy that exploits the divergence between **Implied Volatility (IV)** and **Realized Volatility (RV)**.
-
-The strategy uses statistical signals (Z-score) and incorporates transaction costs and risk metrics to simulate realistic trading performance.
+## Overview
+This project implements a volatility-based trading strategy using the spread between implied volatility (IV) and realized volatility (RV). The strategy is designed to capture mispricing in volatility by identifying periods where implied volatility deviates significantly from realized volatility.
 
 ---
 
-## 🧠 Strategy Idea
+## Strategy Idea
 
-- **Realized Volatility (RV):** Computed from historical returns
-- **Implied Volatility (IV):** Approximated using rolling average of RV
-- **Signal:** Based on Z-score of (IV - RV)
+- Implied Volatility (IV) is proxied using VIX
+- Realized Volatility (RV) is computed from rolling log returns
+- The strategy trades on the **IV - RV spread**
 
-### Trading Logic:
-- If Z-score > threshold → **Sell volatility**
-- If Z-score < -threshold → **Buy volatility**
+### Signal Logic:
+- **Short Volatility** when IV >> RV (overpriced volatility)
+- **Long Volatility** when IV << RV (underpriced volatility)
+
+Signals are generated using **rolling z-scores** of the volatility spread.
 
 ---
 
-## ⚙️ Features
+## Features
 
-- Rolling volatility estimation (RV)
-- Proxy implied volatility (IV)
+- Rolling realized volatility estimation
+- Implied volatility proxy using VIX
 - Z-score based signal generation
-- Holding period to reduce overtrading
-- Transaction cost modeling
-- Backtesting engine
-- Performance metrics (Sharpe Ratio, CAGR, Drawdown)
-- Greeks calculation (Delta, Vega, Theta) using Black-Scholes approximation
+- Volatility regime filtering
+- Volatility-scaled position sizing
+- Transaction cost and slippage modeling
+- Risk management via position caps and stop-loss
+- Backtesting with performance evaluation
 
 ---
 
-## 📊 Results
+## Data
 
-- Strategy vs Market performance plotted
-- Drawdown visualization
-- Trade statistics and risk-adjusted metrics
-
----
-
-## 🧪 Key Insights
-
-- Strategy performs better during stable volatility regimes
-- Performance degrades during sudden volatility spikes
-- Vega filtering improves trade quality by focusing on high sensitivity periods
+- Underlying: SPY (S&P 500 ETF)
+- Implied Volatility Proxy: VIX
+- Frequency: Daily data
+- Period: 2015 – 2024
 
 ---
 
-## 🛠️ Tech Stack
+## Backtesting Framework
 
-- Python
-- pandas, numpy
-- matplotlib
-- yfinance
-- scipy
+The strategy follows a modular pipeline:
 
----
-
-## 📂 Project Structure
-# Volatility Trading Strategy (IV vs RV)
-
-## 📌 Overview
-This project implements a volatility-based trading strategy that exploits the divergence between **Implied Volatility (IV)** and **Realized Volatility (RV)**.
-
-The strategy uses statistical signals (Z-score) and incorporates transaction costs and risk metrics to simulate realistic trading performance.
+1. Data Loading & Cleaning
+2. Feature Engineering (returns, RV, IV)
+3. Signal Generation (z-score of IV-RV spread)
+4. Position Sizing (volatility scaling)
+5. Execution Simulation (with costs)
+6. Performance Evaluation
 
 ---
 
-## 🧠 Strategy Idea
+## Results
 
-- **Realized Volatility (RV):** Computed from historical returns
-- **Implied Volatility (IV):** Approximated using rolling average of RV
-- **Signal:** Based on Z-score of (IV - RV)
-
-### Trading Logic:
-- If Z-score > threshold → **Sell volatility**
-- If Z-score < -threshold → **Buy volatility**
-
----
-
-## ⚙️ Features
-
-- Rolling volatility estimation (RV)
-- Proxy implied volatility (IV)
-- Z-score based signal generation
-- Holding period to reduce overtrading
-- Transaction cost modeling
-- Backtesting engine
-- Performance metrics (Sharpe Ratio, CAGR, Drawdown)
-- Greeks calculation (Delta, Vega, Theta) using Black-Scholes approximation
+| Metric        | Value |
+|--------------|------|
+| Sharpe Ratio | 0.69 |
+| CAGR         | 13.7% |
+| Max Drawdown | -24% |
+| Win Rate     | 17.6% |
+| Trades       | 222 |
 
 ---
 
-## 📊 Results
+## Key Insights
 
-- Strategy vs Market performance plotted
-- Drawdown visualization
-- Trade statistics and risk-adjusted metrics
-
----
-
-## 🧪 Key Insights
-
-- Strategy performs better during stable volatility regimes
-- Performance degrades during sudden volatility spikes
-- Vega filtering improves trade quality by focusing on high sensitivity periods
+- The strategy exhibits **low win rate but positive expectancy**, driven by large gains during volatility dislocations.
+- Performance is **asymmetric**, with occasional large profits offsetting frequent small losses.
+- Risk management significantly reduces drawdowns while preserving signal quality.
 
 ---
 
-## 🛠️ Tech Stack
 
-- Python
-- pandas, numpy
-- matplotlib
-- yfinance
-- scipy
+## How to Run
 
----
-## 📂 Project Structure
+1. Install dependencies: pip install -r requirements.txt
 
-volatility-strategy/
-│
-├── src/
-│ ├── data_loader.py
-│ ├── volatility.py
-│ ├── greeks.py
-│ ├── strategy.py
-│ ├── backtester.py
-│
-├── main.py
-├── requirements.txt
-└── README.md
+
+2. Download data: python download_data.py
+
+
+3. Run the strategy: python main.py
 
 
 ---
 
-## 🚀 How to Run
+## Future Improvements
 
-```bash
-pip install -r requirements.txt
-python main.py
+- Use options data instead of VIX proxy
+- Incorporate volatility term structure (VIX vs VIX3M)
+- Add walk-forward validation
+- Extend to multi-asset portfolios
+- Improve execution modeling

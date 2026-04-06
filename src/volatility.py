@@ -9,5 +9,9 @@ def compute_rv(data, window=20):
     return data
 
 def compute_iv(data):
-    data['IV'] = data['RV'].rolling(5).mean()
+    # Use VIX as implied volatility proxy
+    if 'VIX' not in data.columns:
+        raise ValueError("VIX column required for real implied volatility")
+
+    data['IV'] = data['VIX'] / 100 
     return data

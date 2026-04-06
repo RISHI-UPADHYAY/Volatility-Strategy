@@ -1,35 +1,55 @@
-def generate_signals(data, window=20, threshold=0.02):
+def generate_signals(data, window=20, threshold=1.5):
+
+    # Volatility spread
     spread = data["IV"] - data["RV"]
 
+    # Z-score
     rolling_mean = spread.rolling(window).mean()
     rolling_std = spread.rolling(window).std()
-
     data["z_score"] = (spread - rolling_mean) / rolling_std
+
+    # Volatility regime filter
+    data['vol_regime'] = data['RV'] > data['RV'].rolling(50).mean()
 
     data['signal'] = 0
 
-    #Use Vega as filter
-    data.loc[(data['z_score'] > threshold) & (data['vega'] > data['vega'].median()), 'signal'] = -1
-    data.loc[(data['z_score'] < -threshold) & (data['vega'] > data['vega'].median()), 'signal'] = 1
+    # SHORT VOL (IV >> RV)
+    data.loc[
+        (data['z_score'] > threshold) &
+        (data['vol_regime']),
+        'signal'
+    ] = -1
+
+    # LONG VOL (IV << RV)
+    data.loc[
+        (data['z_score'] < -threshold) &
+        (data['vol_regime']),
+        'signal'
+    ] = 1
 
     return data
 
 
-def apply_holding_period(data, holding_period=5):
-    current_signal = 0
-    hold_days = 0
+def apply_holding_period(data, max_holding=5):
 
-    new_signals = []
+    position = 0
+    days = 0
+    new_signal = []
 
-    for signal in data['signal']:
-        if hold_days > 0 :
-            new_signals.append(current_signal)
-            hold_days -= 1
+    for sig in data['signal']:
+        if position != 0:
+            days += 1
+
+            # Exit if holding too long or signal disappears
+            if days >= max_holding or sig == 0:
+                position = 0
+                days = 0
         else:
-            current_signal = signal
-            new_signals.append(signal)
-            if signal != 0:
-                hold_days = holding_period
-    
-    data['signal'] = new_signals
+            if sig != 0:
+                position = sig
+                days = 0
+
+        new_signal.append(position)
+
+    data['signal'] = new_signal
     return data
